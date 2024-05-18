@@ -26,7 +26,7 @@ pipeline {
 stage ('Create Image using the package') {
  steps {
   echo 'creating a docker image from the package'
-  sh 'docker build -t chandrabhant98/insureme04:01 .'
+  sh 'docker build -t chandrabhant98/insureme04:1.0 .'
           }
        }
     }
