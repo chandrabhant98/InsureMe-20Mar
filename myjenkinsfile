@@ -18,5 +18,10 @@ pipeline {
        sh 'mvn clean package'
             }
         }
+     stage('Publis Test Report')
+    steps {
+       publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '/var/lib/jenkins/workspace/Insureproject/target/surefire-reports', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+           }
+        }
     }
 } 
