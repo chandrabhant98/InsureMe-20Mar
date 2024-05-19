@@ -56,5 +56,15 @@ steps {
     ansiblePlaybook credentialsId: 'ssh-user1', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible.yml', vaultTmpPath: ''
                           }
               }
-      }
+    stage('create Infrastructure using terraform') {
+    step {
+    dir('scripts') {
+     sh 'sudo chmod 600 master.pem'
+     sh 'terraform init'
+     sh 'terraform validate'
+     sh 'terraform apply --auto approve'
+                  }
+            }
+        } 
+   }
 }
