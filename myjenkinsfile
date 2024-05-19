@@ -1,56 +1,55 @@
 pipeline {
-  agent any
+    agent any
 
-  tools {
-    maven 'M2_HOME'
-  }
-  
-  stages {
-    stage('CheckOut') {
-      steps {
-        echo 'Checkout the source code from GitHub'
-        git branch: 'main', url: 'https://github.com/chandrabhant98/InsureMe-20Mar.git'
-      }
+    tools {
+        maven 'M2_HOME'
     }
-    stage('Package') {
-      steps {
-        echo 'Create a Package'
-        sh 'mvn clean package'
-      }
-    }
-    stage('Publish Test Report') {
-      steps {
-        publishHTML([
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: false, 
-          reportDir: '/var/lib/jenkins/workspace/Insureproject/target/surefire-reports', 
-          reportFiles: 'index.html', 
-          reportName: 'HTML Report', 
-          reportTitles: '', 
-          useWrapperFileDirectly: true
-        ])
-      }
-    }
-    stage('Create Image using the package') {
-      steps {
-        echo 'creating a docker image from the package'
-        sh 'docker build -t chandrabhant98/insureme04:1.0 .'
-      }
-    }
-stage('Docker login') {
-  steps {
-   echo 'Login to Docker hub to push the images'
-withCredentials([usernamePassword(credentialsId: 'Dockerlogin-user', passwordVariable: 'Dockerpassword', usernameVariable: 'Dockerlogin')]) {
-sh 'docker login -u ${env.Dockerlogin} -p ${env.Dockerpassword}'
-                                      }
-                  }
-    }
-}
-     stage('Push the Image') {
-       steps {
-         sh 'docker push chandrabhant98/insureme04:1.0'
-                   }
+
+    stages {
+        stage('CheckOut') {
+            steps {
+                echo 'Checkout the source code from GitHub'
+                git branch: 'main', url: 'https://github.com/chandrabhant98/InsureMe-20Mar.git'
             }
-      }
+        }
+        stage('Package') {
+            steps {
+                echo 'Create a Package'
+                sh 'mvn clean package'
+            }
+        }
+        stage('Publish Test Report') {
+            steps {
+                publishHTML([
+                    allowMissing: false, 
+                    alwaysLinkToLastBuild: false, 
+                    keepAll: false, 
+                    reportDir: '/var/lib/jenkins/workspace/Insureproject/target/surefire-reports', 
+                    reportFiles: 'index.html', 
+                    reportName: 'HTML Report', 
+                    reportTitles: '', 
+                    useWrapperFileDirectly: true
+                ])
+            }
+        }
+        stage('Create Image using the package') {
+            steps {
+                echo 'creating a docker image from the package'
+                sh 'docker build -t chandrabhant98/insureme04:1.0 .'
+            }
+        }
+        stage('Docker login') {
+            steps {
+                echo 'Login to Docker hub to push the images'
+                withCredentials([usernamePassword(credentialsId: 'Dockerlogin-user', passwordVariable: 'Dockerpassword', usernameVariable: 'Dockerlogin')]) {
+                    sh 'docker login -u ${env.Dockerlogin} -p ${env.Dockerpassword}'
+                }
+            }
+        }
+        stage('Push the Image') {
+            steps {
+                sh 'docker push chandrabhant98/insureme04:1.0'
+            }
+        }
+    }
 }
