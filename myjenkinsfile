@@ -5,6 +5,10 @@ pipeline {
         maven 'M2_HOME'
     }
 
+    environment {
+        IMAGE_NAME = "chandrabhant98/insureme04:1.0"
+    }
+
     stages {
         stage('CheckOut') {
             steps {
@@ -24,7 +28,7 @@ pipeline {
                     allowMissing: false, 
                     alwaysLinkToLastBuild: false, 
                     keepAll: false, 
-                    reportDir: '/var/lib/jenkins/workspace/Insureproject/target/surefire-reports', 
+                    reportDir: 'target/surefire-reports', 
                     reportFiles: 'index.html', 
                     reportName: 'HTML Report', 
                     reportTitles: '', 
@@ -34,28 +38,28 @@ pipeline {
         }
         stage('Create Image using the package') {
             steps {
-                echo 'creating a docker image from the package'
-                sh 'docker build -t chandrabhant98/insureme04:1.0 .'
+                echo 'Creating a Docker image from the package'
+                sh "docker build -t ${IMAGE_NAME} ."
             }
         }
         stage('Docker login') {
             steps {
-                echo 'Login to Docker hub to push the images'
+                echo 'Login to Docker Hub to push the images'
                 withCredentials([usernamePassword(credentialsId: 'Dockerlogin-user', passwordVariable: 'Dockerpassword', usernameVariable: 'Dockerlogin')]) {
-                    sh "docker login -u ${Dockerlogin} -p ${Dockerpassword}"
+                    sh "echo ${Dockerpassword} | docker login -u ${Dockerlogin} --password-stdin"
                 }
             }
         }
         stage('Push the Image') {
             steps {
-                sh 'docker push chandrabhant98/insureme04:1.0'
+                sh "docker push ${IMAGE_NAME}"
             }
         }
         stage('Deploy using Ansible') {
             steps {
                 script {
                     try {
-                        ansiblePlaybook credentialsId: 'ssh-user1', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible.yml', vaultTmpPath: ''
+                        ansiblePlaybook credentialsId: 'ssh-user1', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible.yml'
                     } catch (Exception e) {
                         echo "Ansible playbook execution failed: ${e}"
                         error "Ansible playbook execution failed"
@@ -66,7 +70,7 @@ pipeline {
         stage('Create Infrastructure using Terraform') {
             steps {
                 dir('scripts') {
-                    sh 'sudo chmod 600 master.pem'
+                    sh 'sudo chmod 600 worker.pem'
                     sh 'terraform init'
                     sh 'terraform validate'
                     sh 'terraform apply -auto-approve'
