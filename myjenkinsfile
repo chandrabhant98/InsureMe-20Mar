@@ -53,7 +53,14 @@ pipeline {
         }
         stage('Deploy using Ansible') {
             steps {
-                ansiblePlaybook credentialsId: 'ssh-user1', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible.yml', vaultTmpPath: ''
+                script {
+                    try {
+                        ansiblePlaybook credentialsId: 'ssh-user1', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible.yml', vaultTmpPath: ''
+                    } catch (Exception e) {
+                        echo "Ansible playbook execution failed: ${e}"
+                        error "Ansible playbook execution failed"
+                    }
+                }
             }
         }
         stage('Create Infrastructure using Terraform') {
@@ -65,6 +72,6 @@ pipeline {
                     sh 'terraform apply -auto-approve'
                 }
             }
-        } 
+        }
     }
 }
