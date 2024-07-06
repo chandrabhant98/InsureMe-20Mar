@@ -44,7 +44,7 @@ pipeline {
      }
 stage('Push the Image') {
             steps {
-                sh "docker push ${IMAGE_NAME}"
+                sh 'docker push  chandrabhant98/insureme-08june:5.0'
                }
            }
       }
