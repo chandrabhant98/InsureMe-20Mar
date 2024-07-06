@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "chandrabhant98/insureme04:1.0"
+        IMAGE_NAME = "chandrabhant98/insureme-07june:1.0"
     }
 
     stages {
@@ -16,38 +16,38 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/chandrabhant98/InsureMe-20Mar.git'
             }
         }
-        stage ('Package') {
-          steps {
-            echo 'Create a Package'
-            sh 'mvn clean package'
-                  }
-              }
-      stage('Publish Test Report') {
-        steps {
-     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '/var/lib/jenkins/workspace/Insureproject/target/surefire-reports', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-               }
-         }
-    stage('Create Image using the package') {
-      steps { 
-         echo 'creating a docker image from the package'
-         sh 'docker build -t chandrabhant98/insureme-07june:1.0 .'
-                    }
-               }
-               stage('Docker login') {
+        stage('Package') {
             steps {
-                echo 'Login to Docker Hub to push the images'
+                echo 'Create a Package'
+                sh 'mvn clean package'
+            }
+        }
+        stage('Publish Test Report') {
+            steps {
+                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/surefire-reports', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+            }
+        }
+        stage('Create Image using the package') {
+            steps { 
+                echo 'Creating a Docker image from the package'
+                sh "docker build -t ${IMAGE_NAME} ."
+            }
+        }
+        stage('Docker login') {
+            steps {
+                echo 'Login to Docker Hub to push the image'
                 withCredentials([usernamePassword(credentialsId: 'Dockerlogin-user', passwordVariable: 'Dockerpassword', usernameVariable: 'Dockerlogin')]) {
                     sh "echo ${Dockerpassword} | docker login -u ${Dockerlogin} --password-stdin"
                 }
-          
-          }
-     }
-stage('Push the Image') {
+            }
+        }
+        stage('Push the Image') {
             steps {
-                sh 'docker push  chandrabhant98/insureme-08june:5.0'
-               }
-           }
-  stage('Deploy using Ansible') {
+                echo 'Pushing the Docker image to Docker Hub'
+                sh "docker push ${IMAGE_NAME}"
+            }
+        }
+        stage('Deploy using Ansible') {
             steps {
                 script {
                     try {
@@ -59,6 +59,5 @@ stage('Push the Image') {
                 }
             }
         }
-
-      }
+    }
 }
