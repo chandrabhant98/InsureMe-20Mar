@@ -33,5 +33,19 @@ pipeline {
          sh 'docker build -t chandrabhant98/insureme-07june:1.0 .'
                     }
                }
+               stage('Docker login') {
+            steps {
+                echo 'Login to Docker Hub to push the images'
+                withCredentials([usernamePassword(credentialsId: 'Dockerlogin-user', passwordVariable: 'Dockerpassword', usernameVariable: 'Dockerlogin')]) {
+                    sh "echo ${Dockerpassword} | docker login -u ${Dockerlogin} --password-stdin"
+                }
+          
           }
-    }
+     }
+stage('Push the Image') {
+            steps {
+                sh "docker push ${IMAGE_NAME}"
+               }
+           }
+      }
+}
